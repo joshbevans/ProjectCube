@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace CubeProject.Core.Models;
@@ -17,7 +18,7 @@ public class CubeLoadout
 
     // AudioReactive mode
     public string? Effect { get; set; }
-    public Dictionary<string, object>? Params { get; set; }
+    public Dictionary<string, JsonElement>? Params { get; set; }
 
     [JsonIgnore]
     public string? FilePath { get; set; }

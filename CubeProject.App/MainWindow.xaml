@@ -133,10 +133,11 @@
                                FontSize="12" VerticalAlignment="Center" Margin="0,0,16,0" />
 
                     <!-- Settings button -->
-                    <Button Content="⚙" Width="32" Height="28"
+                    <Button Content="&#xE713;" Width="32" Height="28"
                             Command="{Binding OpenSettingsCommand}"
                             Background="Transparent" BorderThickness="0"
-                            Foreground="#AAAAAA" FontSize="16" ToolTip="Settings" />
+                            Foreground="#AAAAAA" FontSize="16" ToolTip="Settings"
+                            FontFamily="Segoe MDL2 Assets" />
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -165,22 +166,22 @@
                     <ComboBox ItemsSource="{Binding AudioDevices}"
                               SelectedItem="{Binding SelectedAudioDevice}"
                               DisplayMemberPath="FriendlyName"
-                              Height="32">
-                        <ComboBox.Style>
-                            <Style TargetType="ComboBox">
-                                <Setter Property="Background" Value="#333333" />
-                                <Setter Property="Foreground" Value="#DDDDDD" />
-                                <Setter Property="BorderBrush" Value="#555555" />
-                            </Style>
-                        </ComboBox.Style>
+                              Foreground="#DDDDDD" Height="32">
+                        <ComboBox.Resources>
+                            <!-- Override system colours used by the popup panel -->
+                            <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}"     Color="#252525"/>
+                            <SolidColorBrush x:Key="{x:Static SystemColors.WindowTextBrushKey}" Color="#DDDDDD"/>
+                            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"  Color="#3355AA"/>
+                            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="White"/>
+                        </ComboBox.Resources>
                         <ComboBox.ItemContainerStyle>
                             <Style TargetType="ComboBoxItem">
-                                <Setter Property="Background" Value="#333333" />
-                                <Setter Property="Foreground" Value="#DDDDDD" />
+                                <Setter Property="Background" Value="#252525"/>
+                                <Setter Property="Foreground" Value="#DDDDDD"/>
                                 <Style.Triggers>
                                     <Trigger Property="IsHighlighted" Value="True">
-                                        <Setter Property="Background" Value="#3355AA" />
-                                        <Setter Property="Foreground" Value="White" />
+                                        <Setter Property="Background" Value="#3355AA"/>
+                                        <Setter Property="Foreground" Value="White"/>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>

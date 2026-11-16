@@ -12,11 +12,13 @@ namespace CubeProject.App;
 public partial class MainWindow : Window
 {
     private readonly CubeRenderer _renderer;
+    private readonly AudioReactiveRenderer _audioRenderer;
 
     public MainWindow()
     {
         InitializeComponent();
         _renderer = new CubeRenderer(CubeVisual);
+        _audioRenderer = new AudioReactiveRenderer(_renderer);
 
         // Left drag = rotate, everything else off
         Viewport.RotateGesture  = new MouseGesture(MouseAction.LeftClick);
@@ -28,17 +30,27 @@ public partial class MainWindow : Window
 
     private void OnLoadoutSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        // Read from event args — ViewModel binding hasn't propagated yet when this fires
+        _audioRenderer.Stop();
+
         var loadout = e.AddedItems.Count > 0 ? e.AddedItems[0] as CubeLoadout : null;
 
-        if (loadout?.Mode == LoadoutMode.Preset && loadout.Frame is not null)
+        if (loadout is null)
+        {
+            _renderer.Clear();
+            return;
+        }
+
+        if (loadout.Mode == LoadoutMode.Preset && loadout.Frame is not null)
             _renderer.Render(LoadoutRepository.ToFrame(loadout));
+        else if (loadout.Mode == LoadoutMode.AudioReactive)
+            _audioRenderer.Start(loadout);
         else
             _renderer.Clear();
     }
 
     protected override void OnClosed(EventArgs e)
     {
+        _audioRenderer.Dispose();
         (DataContext as IDisposable)?.Dispose();
         base.OnClosed(e);
     }
