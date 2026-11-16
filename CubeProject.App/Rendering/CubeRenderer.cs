@@ -50,7 +50,7 @@ public class CubeRenderer
             var mat = new EmissiveMaterial(brush);
             mat.Freeze();
 
-            group.Children.Add(new GeometryModel3D(geom, mat) { BackMaterial = mat });
+            group.Children.Add(new GeometryModel3D(geom, mat));
         }
 
         group.Freeze();
@@ -72,13 +72,13 @@ public class CubeRenderer
         pts.Add(new Point3D(cx + V, cy + V, cz + V)); // 6
         pts.Add(new Point3D(cx - V, cy + V, cz + V)); // 7
 
-        // 6 faces × 2 triangles each
-        AddFace(tris, b, 0, 1, 2, 3); // -Z
-        AddFace(tris, b, 5, 4, 7, 6); // +Z
-        AddFace(tris, b, 4, 0, 3, 7); // -X
-        AddFace(tris, b, 1, 5, 6, 2); // +X
-        AddFace(tris, b, 0, 4, 5, 1); // -Y
-        AddFace(tris, b, 3, 2, 6, 7); // +Y
+        // 6 faces × 2 triangles, CCW winding = outward normal
+        AddFace(tris, b, 0, 3, 2, 1); // -Z
+        AddFace(tris, b, 4, 5, 6, 7); // +Z
+        AddFace(tris, b, 0, 4, 7, 3); // -X
+        AddFace(tris, b, 1, 2, 6, 5); // +X
+        AddFace(tris, b, 0, 1, 5, 4); // -Y
+        AddFace(tris, b, 3, 7, 6, 2); // +Y
     }
 
     private static void AddFace(List<int> tris, int b, int a, int c, int d, int e)
