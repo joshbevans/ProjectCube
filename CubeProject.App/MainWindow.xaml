@@ -98,12 +98,8 @@
 
                     <ModelVisual3D>
                         <ModelVisual3D.Content>
-                            <AmbientLight Color="#404040" />
-                        </ModelVisual3D.Content>
-                    </ModelVisual3D>
-                    <ModelVisual3D>
-                        <ModelVisual3D.Content>
-                            <DirectionalLight Color="White" Direction="-1,-2,-1" />
+                            <!-- Full white ambient required to activate EmissiveMaterial -->
+                            <AmbientLight Color="White" />
                         </ModelVisual3D.Content>
                     </ModelVisual3D>
 
@@ -166,7 +162,8 @@
                     <ComboBox ItemsSource="{Binding AudioDevices}"
                               SelectedItem="{Binding SelectedAudioDevice}"
                               DisplayMemberPath="FriendlyName"
-                              Foreground="#DDDDDD" Height="32">
+                              Background="#252525" Foreground="#DDDDDD"
+                              BorderBrush="#555555" Height="32">
                         <ComboBox.Resources>
                             <!-- Override system colours used by the popup panel -->
                             <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}"     Color="#252525"/>
