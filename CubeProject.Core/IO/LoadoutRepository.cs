@@ -12,7 +12,8 @@ public class LoadoutRepository
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
-        Converters = { new JsonStringEnumConverter() }
+        PropertyNameCaseInsensitive = true,
+        Converters = { new JsonStringEnumConverter(), new RgbColorJsonConverter() }
     };
 
     public static void EnsureFolder() => Directory.CreateDirectory(LoadoutsFolder);

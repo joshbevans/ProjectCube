@@ -156,8 +156,27 @@
                     <ComboBox ItemsSource="{Binding AudioDevices}"
                               SelectedItem="{Binding SelectedAudioDevice}"
                               DisplayMemberPath="FriendlyName"
-                              Background="#333333" Foreground="White"
-                              BorderBrush="#444444" Height="32" />
+                              Height="32">
+                        <ComboBox.Style>
+                            <Style TargetType="ComboBox">
+                                <Setter Property="Background" Value="#333333" />
+                                <Setter Property="Foreground" Value="#DDDDDD" />
+                                <Setter Property="BorderBrush" Value="#555555" />
+                            </Style>
+                        </ComboBox.Style>
+                        <ComboBox.ItemContainerStyle>
+                            <Style TargetType="ComboBoxItem">
+                                <Setter Property="Background" Value="#333333" />
+                                <Setter Property="Foreground" Value="#DDDDDD" />
+                                <Style.Triggers>
+                                    <Trigger Property="IsHighlighted" Value="True">
+                                        <Setter Property="Background" Value="#3355AA" />
+                                        <Setter Property="Foreground" Value="White" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
+                    </ComboBox>
                     <TextBlock Text="Select the audio output to react to (WASAPI loopback)"
                                Foreground="#555555" FontSize="11" Margin="0,4,0,16" />
 
