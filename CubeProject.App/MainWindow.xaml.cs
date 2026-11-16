@@ -43,7 +43,7 @@ public partial class MainWindow : Window
         if (loadout.Mode == LoadoutMode.Preset && loadout.Frame is not null)
             _renderer.Render(LoadoutRepository.ToFrame(loadout));
         else if (loadout.Mode == LoadoutMode.AudioReactive)
-            _audioRenderer.Start(loadout);
+            _audioRenderer.Start(loadout, (DataContext as MainViewModel)?.SelectedAudioDevice);
         else
             _renderer.Clear();
     }
