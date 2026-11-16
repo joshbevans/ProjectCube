@@ -82,6 +82,8 @@
                                    Background="#111111"
                                    ShowCoordinateSystem="False"
                                    ShowFrameRate="False"
+                                   ShowViewCube="False"
+                                   IsHeadLightEnabled="False"
                                    ZoomExtentsWhenLoaded="False"
                                    RotateAroundMouseDownPoint="False"
                                    ZoomAroundMouseDownPoint="False"

@@ -143,10 +143,36 @@ public class AudioReactiveRenderer : IDisposable
         _t += 0.04;
         var frame = _loadout?.Effect?.ToLowerInvariant() switch
         {
+            "rainbowcycle" => RenderRainbowCycle(),
             "verticalbars" => RenderVerticalBars(),
             _ => RenderVerticalBars()
         };
         _renderer.Render(frame);
+    }
+
+    private CubeFrame RenderRainbowCycle()
+    {
+        var frame = new CubeFrame();
+        for (var x = 0; x < 16; x++)
+        for (var y = 0; y < 16; y++)
+        for (var z = 0; z < 16; z++)
+        {
+            // Diagonal wave: hue determined by position + slow time offset
+            float hue = ((x + y + z) / 45f + (float)(_t * 0.05)) % 1f;
+            frame[x, y, z] = HueToRgb(hue);
+        }
+        return frame;
+    }
+
+    private static RgbColor HueToRgb(float h)
+    {
+        float r = Math.Abs(h * 6 - 3) - 1;
+        float g = 2 - Math.Abs(h * 6 - 2);
+        float b = 2 - Math.Abs(h * 6 - 4);
+        return new RgbColor(
+            (byte)(Math.Clamp(r, 0f, 1f) * 255),
+            (byte)(Math.Clamp(g, 0f, 1f) * 255),
+            (byte)(Math.Clamp(b, 0f, 1f) * 255));
     }
 
     private CubeFrame RenderVerticalBars()
