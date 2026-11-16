@@ -100,8 +100,10 @@
 
                     <ModelVisual3D>
                         <ModelVisual3D.Content>
-                            <!-- Full white ambient required to activate EmissiveMaterial -->
-                            <AmbientLight Color="White" />
+                            <Model3DGroup>
+                                <AmbientLight Color="#888888" />
+                                <DirectionalLight Color="#888888" Direction="-1,-1.5,-1" />
+                            </Model3DGroup>
                         </ModelVisual3D.Content>
                     </ModelVisual3D>
 

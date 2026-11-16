@@ -46,8 +46,7 @@ public class CubeRenderer
 
             var brush = new SolidColorBrush(Color.FromRgb(color.R, color.G, color.B));
             brush.Freeze();
-            // EmissiveMaterial: self-luminous, ignores normals/lights — correct for LEDs
-            var mat = new EmissiveMaterial(brush);
+            var mat = new DiffuseMaterial(brush);
             mat.Freeze();
 
             group.Children.Add(new GeometryModel3D(geom, mat));

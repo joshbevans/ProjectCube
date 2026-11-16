@@ -158,7 +158,7 @@ public class AudioReactiveRenderer : IDisposable
         for (var z = 0; z < 16; z++)
         {
             // Diagonal wave: hue determined by position + slow time offset
-            float hue = ((x + y + z) / 45f + (float)(_t * 0.05)) % 1f;
+            float hue = ((x + y + z) / 45f + (float)(_t * 0.5)) % 1f;
             frame[x, y, z] = HueToRgb(hue);
         }
         return frame;
