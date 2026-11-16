@@ -28,13 +28,10 @@ public partial class MainWindow : Window
 
     private void OnLoadoutSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (DataContext is not MainViewModel vm || vm.SelectedLoadout is not CubeLoadout loadout)
-        {
-            _renderer.Clear();
-            return;
-        }
+        // Read from event args — ViewModel binding hasn't propagated yet when this fires
+        var loadout = e.AddedItems.Count > 0 ? e.AddedItems[0] as CubeLoadout : null;
 
-        if (loadout.Mode == LoadoutMode.Preset && loadout.Frame is not null)
+        if (loadout?.Mode == LoadoutMode.Preset && loadout.Frame is not null)
             _renderer.Render(LoadoutRepository.ToFrame(loadout));
         else
             _renderer.Clear();
