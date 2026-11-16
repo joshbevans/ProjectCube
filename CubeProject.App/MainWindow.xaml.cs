@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media.Media3D;
 using CubeProject.App.Rendering;
 using CubeProject.App.ViewModels;
@@ -16,6 +17,13 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _renderer = new CubeRenderer(CubeVisual);
+
+        // Left drag = rotate, everything else off
+        Viewport.RotateGesture  = new MouseGesture(MouseAction.LeftClick);
+        Viewport.RotateGesture2 = new MouseGesture(MouseAction.None);
+        Viewport.PanGesture     = new MouseGesture(MouseAction.None);
+        Viewport.PanGesture2    = new MouseGesture(MouseAction.None);
+        Viewport.IsPanEnabled   = false;
     }
 
     private void OnLoadoutSelectionChanged(object sender, SelectionChangedEventArgs e)
