@@ -17,6 +17,15 @@ public class LoadoutRepository
 
     public static void EnsureFolder() => Directory.CreateDirectory(LoadoutsFolder);
 
+    public static CubeLoadout? Load(string path)
+    {
+        var json = File.ReadAllText(path);
+        var loadout = JsonSerializer.Deserialize<CubeLoadout>(json, JsonOptions);
+        if (loadout is not null)
+            loadout.FilePath = path;
+        return loadout;
+    }
+
     public static async Task<CubeLoadout?> LoadAsync(string path)
     {
         await using var stream = File.OpenRead(path);

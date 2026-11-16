@@ -12,6 +12,7 @@ namespace CubeProject.App.ViewModels;
 public partial class MainViewModel : ObservableObject, IDisposable
 {
     private FileSystemWatcher? _watcher;
+    private System.Threading.Timer? _debounce;
 
     [ObservableProperty] private ObservableCollection<CubeLoadout> _loadouts = [];
     [ObservableProperty] private CubeLoadout? _selectedLoadout;
@@ -37,7 +38,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private async Task Refresh() => await RefreshAsync();
+    private void Refresh() => LoadoutsFromDisk();
 
     [RelayCommand]
     private void ToggleLoadoutPanel()
@@ -86,19 +87,22 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     private void LoadoutsFromDisk()
     {
-        Loadouts.Clear();
+        var previousName = SelectedLoadout?.Name;
+        var updated = new List<CubeLoadout>();
+
         foreach (var path in LoadoutRepository.EnumeratePaths())
         {
-            var loadout = LoadoutRepository.LoadAsync(path).GetAwaiter().GetResult();
-            if (loadout is not null)
-                Loadouts.Add(loadout);
+            try
+            {
+                var loadout = LoadoutRepository.Load(path);
+                if (loadout is not null)
+                    updated.Add(loadout);
+            }
+            catch { /* skip malformed files */ }
         }
-    }
 
-    private async Task RefreshAsync()
-    {
-        var previousName = SelectedLoadout?.Name;
-        LoadoutsFromDisk();
+        Loadouts = new ObservableCollection<CubeLoadout>(updated);
+
         if (previousName is not null)
             SelectedLoadout = Loadouts.FirstOrDefault(l => l.Name == previousName);
     }
@@ -117,11 +121,19 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _watcher.Renamed += OnLoadoutFileChanged;
     }
 
-    private void OnLoadoutFileChanged(object sender, FileSystemEventArgs e) =>
-        Application.Current.Dispatcher.InvokeAsync(async () => await RefreshAsync());
+    private void OnLoadoutFileChanged(object sender, FileSystemEventArgs e)
+    {
+        // Debounce: wait 400ms after the last event before refreshing
+        _debounce?.Change(400, System.Threading.Timeout.Infinite);
+        _debounce ??= new System.Threading.Timer(_ =>
+        {
+            Application.Current.Dispatcher.Invoke(LoadoutsFromDisk);
+        }, null, 400, System.Threading.Timeout.Infinite);
+    }
 
     public void Dispose()
     {
+        _debounce?.Dispose();
         _watcher?.Dispose();
         foreach (var device in AudioDevices)
             device.Dispose();
