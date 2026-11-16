@@ -86,7 +86,8 @@
                                    RotateAroundMouseDownPoint="False"
                                    ZoomAroundMouseDownPoint="False"
                                    IsPanEnabled="False"
-                                   CameraRotationMode="Trackball">
+                                   CameraRotationMode="Trackball"
+                                   ShowCameraTarget="False">
                     <h:HelixViewport3D.Camera>
                         <!-- Cube spans 0–15 in each axis; centre is (7.5, 7.5, 7.5) -->
                         <PerspectiveCamera Position="35,28,35"

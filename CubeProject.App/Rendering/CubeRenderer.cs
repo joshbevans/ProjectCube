@@ -49,7 +49,7 @@ public class CubeRenderer
             var mat = new DiffuseMaterial(brush);
             mat.Freeze();
 
-            group.Children.Add(new GeometryModel3D(geom, mat));
+            group.Children.Add(new GeometryModel3D(geom, mat) { BackMaterial = mat });
         }
 
         group.Freeze();
