@@ -82,10 +82,17 @@
                                    Background="#111111"
                                    ShowCoordinateSystem="False"
                                    ShowFrameRate="False"
-                                   ZoomExtentsWhenLoaded="True">
+                                   ZoomExtentsWhenLoaded="False"
+                                   RotateAroundMouseDownPoint="False"
+                                   ZoomAroundMouseDownPoint="False"
+                                   IsPanEnabled="False"
+                                   CameraRotationMode="Trackball">
                     <h:HelixViewport3D.Camera>
-                        <PerspectiveCamera Position="30,30,30" LookDirection="-1,-1,-1"
-                                           UpDirection="0,1,0" FieldOfView="45" />
+                        <!-- Cube spans 0–15 in each axis; centre is (7.5, 7.5, 7.5) -->
+                        <PerspectiveCamera Position="35,28,35"
+                                           LookDirection="-27.5,-20.5,-27.5"
+                                           UpDirection="0,1,0"
+                                           FieldOfView="45" />
                     </h:HelixViewport3D.Camera>
 
                     <ModelVisual3D>
