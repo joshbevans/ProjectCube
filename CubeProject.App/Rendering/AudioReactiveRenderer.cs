@@ -10,6 +10,7 @@ namespace CubeProject.App.Rendering;
 public class AudioReactiveRenderer : IDisposable
 {
     private readonly CubeRenderer _renderer;
+    private BandedCubeRenderer? _banded;
     private DispatcherTimer? _timer;
     private CubeLoadout? _loadout;
     private double _t = 0;
@@ -19,7 +20,6 @@ public class AudioReactiveRenderer : IDisposable
     private float[]? _sampleBuffer;
     private int _bufferPos;
     private const int FftSize = 2048;
-
     private readonly float[] _spectrum = new float[16];
     private readonly object _spectrumLock = new();
     private bool _hasRealAudio;
@@ -33,13 +33,95 @@ public class AudioReactiveRenderer : IDisposable
         _t = 0;
         _hasRealAudio = false;
 
-        if (device is not null)
-            TryStartCapture(device);
+        if (device is not null) TryStartCapture(device);
+
+        // Build banded geometry once; only colour updates happen per frame
+        _banded = loadout.Effect?.ToLowerInvariant() switch
+        {
+            "rainbowcycle" => new BandedCubeRenderer(_renderer.Host, 46, (x, y, z) => x + y + z),
+            "verticalbars" => new BandedCubeRenderer(_renderer.Host, 256, (x, y, z) => x * 16 + y),
+            _              => new BandedCubeRenderer(_renderer.Host, 256, (x, y, z) => x * 16 + y),
+        };
 
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33) };
         _timer.Tick += Tick;
         _timer.Start();
     }
+
+    public void Stop()
+    {
+        _timer?.Stop();
+        _timer = null;
+        _banded?.Dispose();
+        _banded = null;
+        _capture?.StopRecording();
+        _capture?.Dispose();
+        _capture = null;
+        _hasRealAudio = false;
+    }
+
+    private void Tick(object? s, EventArgs e)
+    {
+        _t += 0.04;
+        switch (_loadout?.Effect?.ToLowerInvariant())
+        {
+            case "rainbowcycle": TickRainbowCycle(); break;
+            default:             TickVerticalBars();  break;
+        }
+    }
+
+    // ── RainbowCycle ────────────────────────────────────────────────────────
+    // 46 bands keyed by x+y+z sum. Each tick: compute 46 colours, write brushes.
+
+    private void TickRainbowCycle()
+    {
+        if (_banded is null) return;
+        for (int sum = 0; sum <= 45; sum++)
+        {
+            float hue = (sum / 45f + (float)(_t * 0.5)) % 1f;
+            _banded.SetBand(sum, HueToRgb(hue));
+        }
+    }
+
+    // ── VerticalBars ────────────────────────────────────────────────────────
+    // 256 bands keyed by x*16+y. Each is a full Z-row of 16 LEDs.
+
+    private void TickVerticalBars()
+    {
+        if (_banded is null) return;
+
+        var colorLow    = GetColorParam("colorLow",    new RgbColor(0, 0, 255));
+        var colorHigh   = GetColorParam("colorHigh",   new RgbColor(255, 0, 0));
+        var sensitivity = GetFloatParam("sensitivity", 0.8f);
+
+        for (int x = 0; x < 16; x++)
+        {
+            float level;
+            if (_hasRealAudio)
+            {
+                float band;
+                lock (_spectrumLock) band = _spectrum[x];
+                level = Math.Clamp(band * sensitivity * 50f, 0f, 1f);
+            }
+            else
+            {
+                level = (float)(
+                    0.40 * Math.Sin(_t * 2.1 + x * 0.45) +
+                    0.28 * Math.Sin(_t * 3.7 + x * 0.90) +
+                    0.20 * Math.Sin(_t * 1.5 - x * 0.35) +
+                    0.12 * Math.Sin(_t * 5.3 + x * 1.20));
+                level = Math.Clamp((level + 1f) / 2f * sensitivity, 0f, 1f);
+            }
+
+            int barHeight = (int)(level * 16);
+            for (int y = 0; y < 16; y++)
+                _banded.SetBand(x * 16 + y, y < barHeight
+                    ? Lerp(colorLow, colorHigh, y / 15f)
+                    : RgbColor.Black);
+        }
+    }
+
+    // ── Audio capture ────────────────────────────────────────────────────────
 
     private void TryStartCapture(MMDevice device)
     {
@@ -104,7 +186,6 @@ public class AudioReactiveRenderer : IDisposable
         var raw = new float[16];
         for (int band = 0; band < 16; band++)
         {
-            // Logarithmic bands from ~40 Hz to ~16 kHz
             float freqLow  = 40f * MathF.Pow(16000f / 40f,  band      / 16f);
             float freqHigh = 40f * MathF.Pow(16000f / 40f, (band + 1) / 16f);
             int binLow  = Math.Clamp((int)(freqLow  * FftSize / sampleRate), 1, nyquist - 1);
@@ -116,7 +197,6 @@ public class AudioReactiveRenderer : IDisposable
             raw[band] = sum / (binHigh - binLow);
         }
 
-        // Fast attack, slow decay smoothing
         const float Attack = 0.6f, Decay = 0.10f;
         lock (_spectrumLock)
         {
@@ -128,41 +208,7 @@ public class AudioReactiveRenderer : IDisposable
         }
     }
 
-    public void Stop()
-    {
-        _timer?.Stop();
-        _timer = null;
-        _capture?.StopRecording();
-        _capture?.Dispose();
-        _capture = null;
-        _hasRealAudio = false;
-    }
-
-    private void Tick(object? s, EventArgs e)
-    {
-        _t += 0.04;
-        var frame = _loadout?.Effect?.ToLowerInvariant() switch
-        {
-            "rainbowcycle" => RenderRainbowCycle(),
-            "verticalbars" => RenderVerticalBars(),
-            _ => RenderVerticalBars()
-        };
-        _renderer.Render(frame);
-    }
-
-    private CubeFrame RenderRainbowCycle()
-    {
-        var frame = new CubeFrame();
-        for (var x = 0; x < 16; x++)
-        for (var y = 0; y < 16; y++)
-        for (var z = 0; z < 16; z++)
-        {
-            // Diagonal wave: hue determined by position + slow time offset
-            float hue = ((x + y + z) / 45f + (float)(_t * 0.5)) % 1f;
-            frame[x, y, z] = HueToRgb(hue);
-        }
-        return frame;
-    }
+    // ── Helpers ──────────────────────────────────────────────────────────────
 
     private static RgbColor HueToRgb(float h)
     {
@@ -173,47 +219,6 @@ public class AudioReactiveRenderer : IDisposable
             (byte)(Math.Clamp(r, 0f, 1f) * 255),
             (byte)(Math.Clamp(g, 0f, 1f) * 255),
             (byte)(Math.Clamp(b, 0f, 1f) * 255));
-    }
-
-    private CubeFrame RenderVerticalBars()
-    {
-        var colorLow    = GetColorParam("colorLow",    new RgbColor(0, 0, 255));
-        var colorHigh   = GetColorParam("colorHigh",   new RgbColor(255, 0, 0));
-        var sensitivity = GetFloatParam("sensitivity", 0.8f);
-
-        var frame = new CubeFrame();
-
-        for (var x = 0; x < 16; x++)
-        {
-            float level;
-            if (_hasRealAudio)
-            {
-                float band;
-                lock (_spectrumLock) band = _spectrum[x];
-                // FFT magnitudes are small (~0.001–0.1); scale up significantly
-                level = Math.Clamp(band * sensitivity * 50f, 0f, 1f);
-            }
-            else
-            {
-                // Demo sine-wave fallback when no device selected
-                level = (float)(
-                    0.40 * Math.Sin(_t * 2.1 + x * 0.45) +
-                    0.28 * Math.Sin(_t * 3.7 + x * 0.90) +
-                    0.20 * Math.Sin(_t * 1.5 - x * 0.35) +
-                    0.12 * Math.Sin(_t * 5.3 + x * 1.20));
-                level = Math.Clamp((level + 1f) / 2f * sensitivity, 0f, 1f);
-            }
-
-            var barHeight = (int)(level * 16);
-            for (var y = 0; y < barHeight; y++)
-            {
-                var color = Lerp(colorLow, colorHigh, y / 15f);
-                for (var z = 0; z < 16; z++)
-                    frame[x, y, z] = color;
-            }
-        }
-
-        return frame;
     }
 
     private RgbColor GetColorParam(string key, RgbColor fallback)

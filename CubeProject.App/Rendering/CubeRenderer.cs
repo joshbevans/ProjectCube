@@ -10,6 +10,8 @@ public class CubeRenderer
     private const double V = 0.12; // half LED size — small dot in a 1-unit grid
     private const double Gap = 1.0;
 
+    public ModelVisual3D Host => _host;
+
     public CubeRenderer(ModelVisual3D host) => _host = host;
 
     public void Render(CubeFrame frame)
