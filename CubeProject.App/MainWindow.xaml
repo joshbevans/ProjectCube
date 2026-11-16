@@ -43,6 +43,7 @@
 
                     <ListBox ItemsSource="{Binding Loadouts}"
                              SelectedItem="{Binding SelectedLoadout}"
+                             SelectionChanged="OnLoadoutSelectionChanged"
                              Background="Transparent" BorderThickness="0"
                              Margin="0,4,0,0">
                         <ListBox.ItemTemplate>

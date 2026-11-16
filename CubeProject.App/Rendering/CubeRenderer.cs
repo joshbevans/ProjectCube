@@ -7,7 +7,7 @@ namespace CubeProject.App.Rendering;
 public class CubeRenderer
 {
     private readonly ModelVisual3D _host;
-    private const double V = 0.45; // half voxel size
+    private const double V = 0.12; // half LED size — small dot in a 1-unit grid
     private const double Gap = 1.0;
 
     public CubeRenderer(ModelVisual3D host) => _host = host;

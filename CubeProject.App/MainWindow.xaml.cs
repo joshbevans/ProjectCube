@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media.Media3D;
 using CubeProject.App.Rendering;
 using CubeProject.App.ViewModels;
@@ -15,18 +16,17 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _renderer = new CubeRenderer(CubeVisual);
-
-        if (DataContext is MainViewModel vm)
-            vm.PropertyChanged += (_, e) =>
-            {
-                if (e.PropertyName == nameof(MainViewModel.SelectedLoadout))
-                    OnLoadoutChanged(vm.SelectedLoadout);
-            };
     }
 
-    private void OnLoadoutChanged(CubeLoadout? loadout)
+    private void OnLoadoutSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (loadout?.Mode == LoadoutMode.Preset && loadout.Frame is not null)
+        if (DataContext is not MainViewModel vm || vm.SelectedLoadout is not CubeLoadout loadout)
+        {
+            _renderer.Clear();
+            return;
+        }
+
+        if (loadout.Mode == LoadoutMode.Preset && loadout.Frame is not null)
             _renderer.Render(LoadoutRepository.ToFrame(loadout));
         else
             _renderer.Clear();
